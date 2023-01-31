@@ -9,7 +9,9 @@ LABEL maintainer="aptalca"
 
 # environment settings
 ARG DEBIAN_FRONTEND="noninteractive"
-ENV HOME="/config"
+ENV HOME="/config"\
+    USER=okabi \
+    GROUP=okabi
 
 RUN \
   echo "**** install runtime dependencies ****" && \
@@ -43,6 +45,19 @@ RUN \
 
 # add local files
 COPY /root /
+
+#####################################
+# grant access to okabi user
+#####################################
+RUN groupadd ${GROUP} && \
+    useradd -m -g $GROUP $USER && \
+    chown ${USER}:${GROUP} /app && \
+    chown ${USER}:${GROUP} /config && \
+    chown ${USER}:${GROUP} /defaults
+
+#UPDATE init-adduser
+COPY /okabi/run /etc/s6-overlay/s6-rc.d/init-adduser/run
+RUN  chmod 755 /etc/s6-overlay/s6-rc.d/init-adduser/run
 
 # ports and volumes
 EXPOSE 8443
